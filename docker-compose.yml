@@ -1,0 +1,48 @@
+version: '3.8'
+
+services:
+  nearride-api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: ekafy-tenant-nearride
+    restart: unless-stopped
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      - APP_NAME=NearRide
+      - APP_URL=${APP_URL:-https://nearride.ekafy.app}
+      - API_BASE_URL=${API_BASE_URL:-https://nearride.ekafy.app/api/v1}
+      - DB_HOST=${DB_HOST:-ekafy-mariadb}
+      - DB_PORT=${DB_PORT:-3306}
+      - DB_NAME=${DB_NAME:-db_tenant_nearride}
+      - DB_USER=${DB_USER:-ekafy_admin}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - DATABASE_URL=${DATABASE_URL}
+      - JWT_ACCESS_SECRET=${JWT_ACCESS_SECRET}
+      - JWT_REFRESH_SECRET=${JWT_REFRESH_SECRET}
+      - JWT_ACCESS_EXPIRES_IN=${JWT_ACCESS_EXPIRES_IN:-15m}
+      - JWT_REFRESH_EXPIRES_IN=${JWT_REFRESH_EXPIRES_IN:-30d}
+      - REGISTRATION_ENCRYPTION_KEY=${REGISTRATION_ENCRYPTION_KEY}
+      - CORS_ORIGINS=${CORS_ORIGINS:-https://nearride.ekafy.app}
+      - AUTO_APPROVE_LISTINGS=${AUTO_APPROVE_LISTINGS:-false}
+      - UPLOAD_DIRECTORY=public/uploads
+    volumes:
+      - nearride_uploads:/app/public/uploads
+    networks:
+      - ekafy-network
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.nearride.rule=Host(`${DOMAIN:-nearride.ekafy.app}`)"
+      - "traefik.http.routers.nearride.entrypoints=websecure"
+      - "traefik.http.routers.nearride.tls.certresolver=letsencrypt"
+      - "traefik.http.services.nearride.loadbalancer.server.port=3000"
+
+volumes:
+  nearride_uploads:
+    name: ekafy_nearride_uploads
+    driver: local
+
+networks:
+  ekafy-network:
+    external: true
