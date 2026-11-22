@@ -3,7 +3,7 @@ const path = require('path');
 const mariadb = require('mariadb');
 const env = require('../src/config/env');
 
-(async () => {
+async function migrate() {
   const sql = fs.readFileSync(path.join(__dirname, 'schema.sql'), 'utf8');
   let connection;
 
@@ -43,7 +43,13 @@ const env = require('../src/config/env');
   } finally {
     if (connection) await connection.end();
   }
-})().catch((e) => {
-  console.error('Migration error:', e.message);
-  process.exit(1);
-});
+}
+
+if (require.main === module) {
+  migrate().catch((e) => {
+    console.error('Migration error:', e.message);
+    process.exit(1);
+  });
+}
+
+module.exports = { migrate };
